@@ -1,0 +1,116 @@
+/* 일급 객체의 성격
+1. 자바스크립트 함수는 함수의 실제 매개변수가 될 수 있다.
+2. 자바스크립트 함수는 함수의 반환값이 될 수 있다.
+3. 자바스크립트 함수는 할당명령문의 대상이 될 수 있다.
+4. 자바스크립트 함수는 동일비교의 대상이 될 수 있다.
+*/
+// function foo(arg) {
+//   return arg();
+// }
+// function bar() {
+//   console.log('bar');
+// }
+
+// foo(bar);
+
+// const foo2 = function (arg) {
+//   return arg;
+// };
+
+// foo2(1);
+
+/*
+1. 기본값 매개변수 default function parameter
+2. 나머지 매개변수 Rest parameter
+3. arguments 객체
+*/
+// function foo(arg, ...rest){
+//   console.log(rest);
+// }
+// foo(1, 2, 3, 't', true);
+
+// function foo2(arg1 = 1){
+//   console.log(arg1);
+// }
+
+// foo2(2);
+
+// function foo3(arg){
+//   console.log(arguments);
+// }
+
+// foo3(1,2,3,4);
+
+/*
+1. 함수 선언문
+2. 함수 표현식
+3. Function 생성자 함수
+4. 화살표 함수 표현식
+*/
+
+// function foo() {
+//   console.log('foo');
+// }
+
+// foo();
+
+// const foo2 = function () {
+//   console.log('foo2');
+// };
+
+// foo2();
+
+// const foo3 = new Function("console.log('foo3')");
+
+// foo3();
+
+// const foo4 = () => { 
+//   console.log('foo4');
+// };
+
+// foo4();
+
+/*
+1. IIFE (즉시 실행 함수)
+2. 재귀함수
+3. 중첩함수
+4. 콜백함수
+*/
+
+(function foo() {
+  console.log('foo');
+})()
+
+function foo2(arg) {
+  if(arg === 3) return;
+  
+  console.log(arg);
+  foo2(arg + 1);
+}
+
+foo2(1);
+
+function foo3(arg2) {
+  function bar() {
+    console.log(arg2);
+  }
+  bar();
+}
+
+foo3(1);
+
+function foo4(arg3) {
+  arg3();
+}
+
+foo4(() => {
+  console.log(1)
+});
+
+
+
+
+
+
+
+

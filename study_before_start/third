@@ -1,0 +1,28 @@
+// const person = {
+//   name: '???',
+//   phone: '111',
+//   address: {
+//     country: 'Korea',
+//     city: 'Seoul',
+//   },
+// };
+
+// const joy = Object.assign({}, person);
+// const kei = {...person};
+
+// joy.name = 'Joy Kim';
+// kei.name = 'Kei Ko';
+
+// console.log('joy:', joy);
+// console.log('kei:', kei);
+
+// console.log(joy === kei);
+// console.log(joy.address === kei.address);
+
+// joy.address.country = 'Japen';
+// console.log('joy:', joy);
+// console.log('kei:', kei);
+
+// joy.phone = '1234';
+// console.log('joy:', joy);
+// console.log('kei:', kei);
