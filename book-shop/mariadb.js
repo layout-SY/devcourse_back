@@ -5,7 +5,7 @@ const conn = mariadb.createConnection({
 	user: 'root',
 	password: 'root',
 	database: 'Bookshop',
-	dataString: true,
+	dataStrings: true,
 });
 
 module.exports = conn;

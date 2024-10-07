@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.use(express.json());
 
-router.get('/:bookId', bookDetail);
+router.get('/:id', bookDetail);
 
 router.get('/', allBooks);
 

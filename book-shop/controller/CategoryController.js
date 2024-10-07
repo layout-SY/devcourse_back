@@ -11,4 +11,4 @@ const allCategory = (req, res) => {
 	});
 };
 
-module.exports = allCategory;
+module.exports = { allCategory };
