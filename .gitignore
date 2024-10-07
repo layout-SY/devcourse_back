@@ -1,5 +1,5 @@
 # 모든 node_modules 폴더 무시
-**/node_modules/
+node_modules/
 
 # 모든 하위 폴더에 있는 .git 폴더 무시
 **/.git/
