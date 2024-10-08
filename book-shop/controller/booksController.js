@@ -2,9 +2,16 @@ const conn = require('../mariadb');
 const { StatusCodes } = require('http-status-codes');
 
 const bookDetail = (req, res) => {
-	const { id } = req.params;
-	let query = 'SELECT * FROM books LEFT JOIN category ON books.category_id = category.id WHERE books.id = ?';
-	conn.query(query, id, (err, results) => {
+	const { user_id } = req.body;
+	const { liked_book_id } = req.params;
+	let query = `SELECT *, 
+		(SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes, 
+		(SELECT EXISTS (SELECT * FROM likes WHERE user_id=? AND liked_book_id=?)) AS liked 
+		FROM books 
+		LEFT JOIN category ON books.category_id = category.category_id 
+		WHERE books.id=?`;
+	let values = [user_id, liked_book_id, liked_book_id];
+	conn.query(query, values, (err, results) => {
 		if (err) {
 			console.log(err);
 			return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Internal Server Error' });
@@ -28,7 +35,7 @@ const allBooks = (req, res) => {
 	// 						   		   limit * (currentPage-1) == offset
 	let offset = limit * (currentPage - 1);
 
-	let query = 'SELECT * FROM books';
+	let query = 'SELECT *, (SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes FROM books';
 	let values = [];
 	if (category_id && news) {
 		query += ' WHERE category_id=? AND pub_date BETWEEN DATE_SUB(NOW(), INTERVAL 1 YEAR) AND NOW()';

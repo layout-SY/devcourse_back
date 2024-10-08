@@ -1,3 +1,6 @@
+docker exec -it mariadb /bin/bash
+mariadb -u root -p
+
 INSERT INTO books (title, form, isbn, summary, detail, author, pages, contents, price, pub_date)
 VALUES ("어린왕자들", "종이책", 0, "어리다..", "많이 어리다..", "김어림", 100, "목차입니다.", 20000, "2019-01-01");
 
@@ -41,13 +44,14 @@ SELECT * FROM books LEFT JOIN category ON books.category_id = category.id WHERE 
 INSERT INTO likes (user_id, liked_book_id) VALUES (1, 1);
 INSERT INTO likes (user_id, liked_book_id) VALUES (1, 2);
 INSERT INTO likes (user_id, liked_book_id) VALUES (1, 3);
-INSERT INTO likes (user_id, liked_book_id) VALUES (3, 1);
+INSERT INTO likes (user_id, liked_book_id) VALUES (4, 1);
 INSERT INTO likes (user_id, liked_book_id) VALUES (4, 4);
-INSERT INTO likes (user_id, liked_book_id) VALUES (2, 1);
-INSERT INTO likes (user_id, liked_book_id) VALUES (2, 2);
-INSERT INTO likes (user_id, liked_book_id) VALUES (2, 3);
-INSERT INTO likes (user_id, liked_book_id) VALUES (2, 5);
+INSERT INTO likes (user_id, liked_book_id) VALUES (6, 1);
+INSERT INTO likes (user_id, liked_book_id) VALUES (6, 2);
+INSERT INTO likes (user_id, liked_book_id) VALUES (6, 3);
+INSERT INTO likes (user_id, liked_book_id) VALUES (10, 5);
 
+SELECT *, (SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes FROM books;
 
 // 좋아요 삭제
 DELETE FROM likes WHERE user_id = 1 AND liked_book_id = 3;
