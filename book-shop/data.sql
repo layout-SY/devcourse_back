@@ -56,6 +56,19 @@ SELECT *, (SELECT count(*) FROM likes WHERE liked_book_id=books.id) AS likes FRO
 // 좋아요 삭제
 DELETE FROM likes WHERE user_id = 1 AND liked_book_id = 3;
 
+
+
+// FK 제약조건 이름 짓기
+'cartItems.user_id > users.id' => fk_cartItems_user_id
+'likes.user_id > users.id' => fk_likes_users_id
+
+// foreign key 선언
+ ALTER TABLE cartItems 
+ ADD CONSTRAINT fk_cartItems_books_id 
+ FOREIGN KEY (book_id) REFERENCES books (id) ON DELETE NO ACTION ON UPDATE NO ACTION, 
+ ADD CONSTRAINT fk_cartItems_user_id 
+ FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
 // 장바구니 담기
 INSERT INTO cartItems (book_id, quantity, user_id) VALUES (1, 1, 1);
 
