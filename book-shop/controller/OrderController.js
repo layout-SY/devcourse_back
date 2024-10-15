@@ -1,4 +1,4 @@
-// const conn = require('../mariadb');
+const conn = require('../mariadb');
 const mariadb = require('mysql2/promise');
 const { StatusCodes } = require('http-status-codes');
 
@@ -20,47 +20,78 @@ const order = async (req, res) => {
 	let values = [delivery.address, delivery.receiver, delivery.contact];
 
 	// 통째로 promise이기 때문에 await 사용 가능
-	let [results] = await conn.query(query, values);
+	let [results] = await conn.execute(query, values);
+	delivery_id = results.insertId;
 
-	console.log(results);
+	query = `INSERT INTO orders (book_title, total_quantity, total_price, user_id, delivery_id)
+	    VALUES (?, ?, ?, ?, ?)`;
+	values = [firstBookTitle, totalQuantity, totalPrice, userId, delivery_id];
 
-	// query = `INSERT INTO orders (book_title, total_quantity, total_price, user_id, delivery_id)
-	//     VALUES (?, ?, ?, ?, ?)`;
-	// values = [firstBookTitle, totalQuantity, totalPrice, userId, delivery_id];
-	// conn.query(query, values, (err, results) => {
-	// 	if (err) {
-	// 		console.log(err);
-	// 		return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Internal Server Error' });
-	// 	}
+	[results] = await conn.execute(query, values);
+	order_id = results.insertId;
 
-	// 	if (results) {
-	// 		order_id = results.insertId;
-	// 	}
-	// });
-	// query = `INSERT INTO orderedBook (order_id, book_id, quantity) VALUES ?`;
+	// items를 가지고, 장바구니에서 book_id, quantity 조회
+	sql = `SELECT book_id, quantity FROM cartItems WHERE id IN (?)`;
+	let [orderItems, fields] = await conn.query(sql, [items]);
 
-	// values = [];
-	// items.forEach((item) => {
-	// 	values.push([order_id, item.book_id, item.quantity]);
-	// });
-	// conn.query(query, [values], (err, results) => {
-	// 	if (err) {
-	// 		console.log(err);
-	// 		return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Internal Server Error' });
-	// 	}
+	query = `INSERT INTO orderedBook (order_id, book_id, quantity) VALUES ?`;
 
-	// 	if (results) {
-	// 		return res.status(StatusCodes.OK).json(results);
-	// 	}
-	// });
+	values = [];
+	orderItems.forEach((item) => {
+		// 강의 기준 시간대론 해당 문법이 적용이 안됨
+		//최신 문법이므로 execute 메서드에 적용 안될 수 있음.
+		values.push([order_id, item.book_id, item.quantity]);
+	});
+	[results] = await conn.query(query, [values]);
+
+	results = await deleteCartItems_query(conn, items);
+
+	return res.status(StatusCodes.OK).json(results);
 };
 
-const getOrders = (req, res) => {
-	res.json('주문 목록 조회');
+const getOrders = async (req, res) => {
+	const conn = await mariadb.createConnection({
+		host: 'localhost',
+		user: 'root',
+		password: 'root',
+		database: 'Bookshop',
+		dataStrings: true,
+	});
+
+	let query = `SELECT orders.id, book_title, total_quantity, total_price, create_at, 
+							address, receiver, contact 
+			FROM orders 
+			LEFT JOIN delivery 
+			ON orders.delivery_id = delivery.id`;
+	let [rows, fields] = await conn.query(query);
+
+	return res.status(StatusCodes.OK).json(rows);
 };
 
-const getOrderDetail = (req, res) => {
-	res.json('주문 상세 상품 조회');
+const getOrderDetail = async (req, res) => {
+	const conn = await mariadb.createConnection({
+		host: 'localhost',
+		user: 'root',
+		password: 'root',
+		database: 'Bookshop',
+		dataStrings: true,
+	});
+
+	const { id } = req.params;
+	let query = `SELECT books.id, title, author, price, quantity FROM orderedBook 
+			LEFT JOIN books 
+			ON orderedBook.book_id = books.id 
+			WHERE order_id = ?`;
+	let [rows, fields] = await conn.query(query, id);
+
+	return res.status(StatusCodes.OK).json(rows);
+};
+
+const deleteCartItems_query = async (conn, items) => {
+	query = `DELETE FROM cartItems WHERE id IN (?)`;
+
+	let results = await conn.query(query, [items]);
+	return results;
 };
 
 module.exports = { order, getOrders, getOrderDetail };
