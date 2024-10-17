@@ -1,11 +1,16 @@
 const conn = require('../mariadb');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 const { StatusCodes } = require('http-status-codes');
 
+dotenv.config();
+
 const addToCart = (req, res) => {
-	const { book_id, quantity, user_id } = req.body;
+	const { book_id, quantity } = req.body;
+	const authorization = ensureAuthorization(req, res);
 
 	let query = 'INSERT INTO cartItems (book_id, quantity, user_id) VALUES (?, ?, ?);';
-	let values = [book_id, quantity, user_id];
+	let values = [book_id, quantity, authorization.id];
 
 	conn.query(query, values, (err, results) => {
 		if (err) {
@@ -20,22 +25,32 @@ const addToCart = (req, res) => {
 };
 
 const getCartItems = (req, res) => {
-	const { user_id, selected } = req.body;
-	let query = `SELECT cartItems.id, book_id, title, summary, quantity, price 
-                FROM cartItems LEFT JOIN books 
-                ON cartItems.book_id = books.id
-                WHERE user_id =? AND cartItems.id IN (?)`;
-	conn.query(query, [user_id, selected], (err, results) => {
-		if (err) {
-			console.log(err);
-			return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Internal Server Error' });
-		}
-		return res.status(StatusCodes.OK).json(results);
-	});
+	const { selected } = req.body;
+	const authorization = ensureAuthorization(req);
+
+	if (authorization instanceof TokenExpiredError) {
+		return res.status(StatusCodes.UNAUTHORIZED).json({ message: 'Token expired. Please log in again.' });
+	} else if (authorization instanceof jwt.JsonWebTokenError) {
+		return res.status(StatusCodes.BAD_REQUEST).json({
+			message: 'Invalid token. Please log in again.',
+		});
+	} else {
+		let query = `SELECT cartItems.id, book_id, title, summary, quantity, price 
+				FROM cartItems LEFT JOIN books 
+				ON cartItems.book_id = books.id
+				WHERE user_id =? AND cartItems.id IN (?)`;
+		conn.query(query, [authorization.id, selected], (err, results) => {
+			if (err) {
+				console.log(err);
+				return res.status(StatusCodes.BAD_REQUEST).json({ message: 'Internal Server Error' });
+			}
+			return res.status(StatusCodes.OK).json(results);
+		});
+	}
 };
 
 const removeCartItem = (req, res) => {
-	const { id } = req.params;
+	const { cartItemId } = req.params;
 
 	let query = 'DELETE FROM cartItems WHERE id = ?';
 
@@ -56,5 +71,19 @@ const removeCartItem = (req, res) => {
 		}
 	});
 };
+
+function ensureAuthorization(req, res) {
+	try {
+		let receivedJWT = req.headers['authorization'];
+		console.log(receivedJWT);
+
+		let decodedUser = jwt.verify(receivedJWT, process.env.PRIVATE_KEY);
+		console.log(decodedUser);
+
+		return decodedUser;
+	} catch (error) {
+		return;
+	}
+}
 
 module.exports = { addToCart, getCartItems, removeCartItem };
